@@ -54,6 +54,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "aludel-cli"
+version = "0.1.0"
+dependencies = [
+ "aludel-api",
+ "connectrpc",
+ "http",
+ "tokio",
+]
+
+[[package]]
 name = "android_system_properties"
 version = "0.1.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
