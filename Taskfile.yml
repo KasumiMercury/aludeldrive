@@ -7,16 +7,29 @@ tasks:
     cmds:
       - pnpm install --frozen-lockfile
 
+  gen:
+    desc: Protobuf の定義から Go のコードを生成する
+    cmds:
+      - buf generate
+
+  lint:
+    desc: Protobuf の定義を検査する
+    cmds:
+      - buf lint
+      - buf format --diff --exit-code
+
   build:
-    desc: 画面と Rust のワークスペースをビルドする
+    desc: 画面、Go のサーバー、Rust のワークスペースをビルドする
     deps: [install]
     cmds:
       - pnpm --dir app build
+      - go -C server build ./...
       - cargo build --workspace
 
   test:
-    desc: Rust のワークスペースのテストを実行する
+    desc: Go と Rust のテストを実行する
     cmds:
+      - go -C server test ./...
       - cargo test --workspace
 
   dev:
