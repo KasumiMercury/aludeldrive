@@ -1,0 +1,27 @@
+version: "3"
+
+tasks:
+  install:
+    desc: 画面の依存を導入する
+    dir: app
+    cmds:
+      - pnpm install --frozen-lockfile
+
+  build:
+    desc: 画面と Rust のワークスペースをビルドする
+    deps: [install]
+    cmds:
+      - pnpm --dir app build
+      - cargo build --workspace
+
+  test:
+    desc: Rust のワークスペースのテストを実行する
+    cmds:
+      - cargo test --workspace
+
+  dev:
+    desc: アプリを開発モードで起動する
+    deps: [install]
+    dir: app
+    cmds:
+      - cargo tauri dev
