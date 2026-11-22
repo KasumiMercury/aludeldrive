@@ -30,6 +30,15 @@ func TestLoad(t *testing.T) {
 		t.Fatal("unknown field accepted")
 	}
 
+	cfg, err = Load(write("tls.yaml", "tls:\n  cert_file: c.pem\n  key_file: k.pem\n"))
+	if err != nil || !cfg.TLS.Enabled() || cfg.TLS.CertFile != "c.pem" || cfg.TLS.KeyFile != "k.pem" {
+		t.Fatalf("tls = %+v, %v", cfg, err)
+	}
+
+	if _, err := Load(write("tls-half.yaml", "tls:\n  cert_file: c.pem\n")); err == nil {
+		t.Fatal("cert_file without key_file accepted")
+	}
+
 	if _, err := Load(filepath.Join(dir, "missing.yaml")); err == nil {
 		t.Fatal("missing file accepted")
 	}

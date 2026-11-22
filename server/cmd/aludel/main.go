@@ -50,6 +50,7 @@ func serve(args []string) error {
 
 	var protocols http.Protocols
 	protocols.SetHTTP1(true)
+	protocols.SetHTTP2(true)
 	protocols.SetUnencryptedHTTP2(true)
 	srv := &http.Server{
 		Addr:              cfg.Listen,
@@ -63,8 +64,12 @@ func serve(args []string) error {
 
 	errc := make(chan error, 1)
 	go func() {
-		slog.Info("listening", "addr", cfg.Listen, "version", version)
-		errc <- srv.ListenAndServe()
+		slog.Info("listening", "addr", cfg.Listen, "tls", cfg.TLS.Enabled(), "version", version)
+		if cfg.TLS.Enabled() {
+			errc <- srv.ListenAndServeTLS(cfg.TLS.CertFile, cfg.TLS.KeyFile)
+		} else {
+			errc <- srv.ListenAndServe()
+		}
 	}()
 
 	select {

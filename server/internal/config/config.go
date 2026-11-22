@@ -2,6 +2,7 @@ package config
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"os"
 
@@ -10,6 +11,16 @@ import (
 
 type Config struct {
 	Listen string `yaml:"listen"`
+	TLS    TLS    `yaml:"tls"`
+}
+
+type TLS struct {
+	CertFile string `yaml:"cert_file"`
+	KeyFile  string `yaml:"key_file"`
+}
+
+func (t TLS) Enabled() bool {
+	return t.CertFile != "" || t.KeyFile != ""
 }
 
 func Default() Config {
@@ -29,6 +40,9 @@ func Load(path string) (Config, error) {
 	dec.KnownFields(true)
 	if err := dec.Decode(&cfg); err != nil {
 		return Config{}, fmt.Errorf("parse config %s: %w", path, err)
+	}
+	if cfg.TLS.Enabled() && (cfg.TLS.CertFile == "" || cfg.TLS.KeyFile == "") {
+		return Config{}, errors.New("tls: cert_file and key_file must be set together")
 	}
 	return cfg, nil
 }
