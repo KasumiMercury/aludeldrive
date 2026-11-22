@@ -1,0 +1,16 @@
+version: v2
+clean: true
+managed:
+  enabled: true
+  override:
+    - file_option: go_package_prefix
+      value: github.com/KasumiMercury/aludeldrive/server/gen
+inputs:
+  - directory: proto
+plugins:
+  - local: protoc-gen-go
+    out: server/gen
+    opt: paths=source_relative
+  - local: protoc-gen-connect-go
+    out: server/gen
+    opt: paths=source_relative

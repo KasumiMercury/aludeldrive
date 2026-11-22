@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package aludel.v1;
+
+service ServerService {
+  rpc GetServerInfo(GetServerInfoRequest) returns (GetServerInfoResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+}
+
+message GetServerInfoRequest {}
+
+message GetServerInfoResponse {
+  string version = 1;
+}
