@@ -1,0 +1,31 @@
+name: autofix.ci
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  autofix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 2
+      - id: changes
+        run: >-
+          scripts/changed.sh
+          app ':!app/src-tauri' mise.toml
+          .github/workflows/autofix.yml scripts/changed.sh
+      - if: steps.changes.outputs.run == 'true'
+        uses: jdx/mise-action@v3
+        with:
+          install_args: node pnpm
+      - if: steps.changes.outputs.run == 'true'
+        working-directory: app
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm fmt
+      - if: steps.changes.outputs.run == 'true'
+        uses: autofix-ci/action@v1
