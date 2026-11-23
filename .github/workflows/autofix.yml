@@ -13,19 +13,34 @@ jobs:
       - uses: actions/checkout@v5
         with:
           fetch-depth: 2
-      - id: changes
+      - id: app
         run: >-
           scripts/changed.sh
           app ':!app/src-tauri' mise.toml
           .github/workflows/autofix.yml scripts/changed.sh
-      - if: steps.changes.outputs.run == 'true'
+      - id: rust
+        run: >-
+          scripts/changed.sh
+          crates app/src-tauri Cargo.toml
+          .github/workflows/autofix.yml scripts/changed.sh
+      - id: go
+        run: >-
+          scripts/changed.sh
+          server go.work mise.toml
+          .github/workflows/autofix.yml scripts/changed.sh
+      - if: steps.app.outputs.run == 'true' || steps.go.outputs.run == 'true'
         uses: jdx/mise-action@v3
         with:
-          install_args: node pnpm
-      - if: steps.changes.outputs.run == 'true'
+          install_args: >-
+            ${{ steps.app.outputs.run == 'true' && 'node pnpm' || '' }}
+            ${{ steps.go.outputs.run == 'true' && 'go' || '' }}
+      - if: steps.app.outputs.run == 'true'
         working-directory: app
         run: |
           pnpm install --frozen-lockfile
           pnpm fmt
-      - if: steps.changes.outputs.run == 'true'
-        uses: autofix-ci/action@v1
+      - if: steps.rust.outputs.run == 'true'
+        run: cargo fmt --all
+      - if: steps.go.outputs.run == 'true'
+        run: gofmt -w server
+      - uses: autofix-ci/action@v1
