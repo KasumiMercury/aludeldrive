@@ -5,107 +5,95 @@
 package aludelv1connect
 
 import (
-	connect "connectrpc.com/connect"
+	connect "connectrpc.com/connect/v2"
 	context "context"
-	errors "errors"
 	v1 "github.com/KasumiMercury/aludeldrive/server/gen/aludel/v1"
-	http "net/http"
-	strings "strings"
+	sync "sync"
 )
-
-// This is a compile-time assertion to ensure that this generated file and the connect package are
-// compatible. If you get a compiler error that this constant is not defined, this code was
-// generated with a version of connect newer than the one compiled into your binary. You can fix the
-// problem by either regenerating this code with an older version of connect or updating the connect
-// version compiled into your binary.
-const _ = connect.IsAtLeastVersion1_13_0
 
 const (
 	// ServerServiceName is the fully-qualified name of the ServerService service.
 	ServerServiceName = "aludel.v1.ServerService"
 )
 
-// These constants are the fully-qualified names of the RPCs defined in this package. They're
-// exposed at runtime as Spec.Procedure and as the final two segments of the HTTP route.
+// These constants are the procedure names of the RPCs defined in this package. They're exposed at
+// runtime as Spec.Procedure and as the final two segments of the HTTP route.
 //
 // Note that these are different from the fully-qualified method names used by
 // google.golang.org/protobuf/reflect/protoreflect. To convert from these constants to
 // reflection-formatted method names, remove the leading slash and convert the remaining slash to a
 // period.
 const (
-	// ServerServiceGetServerInfoProcedure is the fully-qualified name of the ServerService's
-	// GetServerInfo RPC.
+	// ServerServiceGetServerInfoProcedure is the procedure name of the ServerService's GetServerInfo
+	// RPC.
 	ServerServiceGetServerInfoProcedure = "/aludel.v1.ServerService/GetServerInfo"
+)
+
+var (
+	serverServiceGetServerInfoSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType:       connect.StreamTypeUnary,
+			Schema:           v1.File_aludel_v1_server_proto.Services().ByName("ServerService").Methods().ByName("GetServerInfo"),
+			Procedure:        ServerServiceGetServerInfoProcedure,
+			IdempotencyLevel: connect.IdempotencyNoSideEffects,
+		}
+	})
 )
 
 // ServerServiceClient is a client for the aludel.v1.ServerService service.
 type ServerServiceClient interface {
-	GetServerInfo(context.Context, *connect.Request[v1.GetServerInfoRequest]) (*connect.Response[v1.GetServerInfoResponse], error)
+	GetServerInfo(context.Context, *v1.GetServerInfoRequest) (*v1.GetServerInfoResponse, error)
 }
 
-// NewServerServiceClient constructs a client for the aludel.v1.ServerService service. By default,
-// it uses the Connect protocol with the binary Protobuf Codec, asks for gzipped responses, and
-// sends uncompressed requests. To use the gRPC or gRPC-Web protocols, supply the connect.WithGRPC()
-// or connect.WithGRPCWeb() options.
-//
-// The URL supplied here should be the base URL for the Connect or gRPC server (for example,
-// http://api.acme.com or https://acme.com/grpc).
-func NewServerServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) ServerServiceClient {
-	baseURL = strings.TrimRight(baseURL, "/")
-	serverServiceMethods := v1.File_aludel_v1_server_proto.Services().ByName("ServerService").Methods()
-	return &serverServiceClient{
-		getServerInfo: connect.NewClient[v1.GetServerInfoRequest, v1.GetServerInfoResponse](
-			httpClient,
-			baseURL+ServerServiceGetServerInfoProcedure,
-			connect.WithSchema(serverServiceMethods.ByName("GetServerInfo")),
-			connect.WithIdempotency(connect.IdempotencyNoSideEffects),
-			connect.WithClientOptions(opts...),
-		),
-	}
-}
-
-// serverServiceClient implements ServerServiceClient.
-type serverServiceClient struct {
-	getServerInfo *connect.Client[v1.GetServerInfoRequest, v1.GetServerInfoResponse]
-}
-
-// GetServerInfo calls aludel.v1.ServerService.GetServerInfo.
-func (c *serverServiceClient) GetServerInfo(ctx context.Context, req *connect.Request[v1.GetServerInfoRequest]) (*connect.Response[v1.GetServerInfoResponse], error) {
-	return c.getServerInfo.CallUnary(ctx, req)
+// NewServerServiceClient constructs a client for the aludel.v1.ServerService service. Multiple
+// service clients may share a single connect.Client.
+func NewServerServiceClient(client *connect.Client) ServerServiceClient {
+	return &serverServiceClient{client: client}
 }
 
 // ServerServiceHandler is an implementation of the aludel.v1.ServerService service.
 type ServerServiceHandler interface {
-	GetServerInfo(context.Context, *connect.Request[v1.GetServerInfoRequest]) (*connect.Response[v1.GetServerInfoResponse], error)
+	GetServerInfo(context.Context, *v1.GetServerInfoRequest) (*v1.GetServerInfoResponse, error)
 }
 
-// NewServerServiceHandler builds an HTTP handler from the service implementation. It returns the
-// path on which to mount the handler and the handler itself.
-//
-// By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
-// and JSON codecs. They also support gzip compression.
-func NewServerServiceHandler(svc ServerServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
-	serverServiceMethods := v1.File_aludel_v1_server_proto.Services().ByName("ServerService").Methods()
-	serverServiceGetServerInfoHandler := connect.NewUnaryHandler(
-		ServerServiceGetServerInfoProcedure,
-		svc.GetServerInfo,
-		connect.WithSchema(serverServiceMethods.ByName("GetServerInfo")),
-		connect.WithIdempotency(connect.IdempotencyNoSideEffects),
-		connect.WithHandlerOptions(opts...),
+// RegisterServerServiceHandler registers svc as the aludel.v1.ServerService implementation on
+// server.
+func RegisterServerServiceHandler(server *connect.Server, svc ServerServiceHandler) {
+	adapter := serverServiceHandler{svc: svc}
+	server.Register(
+		connect.Method{Spec: serverServiceGetServerInfoSpec(), Handler: adapter.getServerInfo},
 	)
-	return "/aludel.v1.ServerService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		switch r.URL.Path {
-		case ServerServiceGetServerInfoProcedure:
-			serverServiceGetServerInfoHandler.ServeHTTP(w, r)
-		default:
-			http.NotFound(w, r)
-		}
-	})
 }
 
 // UnimplementedServerServiceHandler returns CodeUnimplemented from all methods.
 type UnimplementedServerServiceHandler struct{}
 
-func (UnimplementedServerServiceHandler) GetServerInfo(context.Context, *connect.Request[v1.GetServerInfoRequest]) (*connect.Response[v1.GetServerInfoResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("aludel.v1.ServerService.GetServerInfo is not implemented"))
+func (UnimplementedServerServiceHandler) GetServerInfo(context.Context, *v1.GetServerInfoRequest) (*v1.GetServerInfoResponse, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "aludel.v1.ServerService.GetServerInfo is not implemented")
+}
+
+type serverServiceClient struct {
+	client *connect.Client
+}
+
+func (c *serverServiceClient) GetServerInfo(ctx context.Context, req *v1.GetServerInfoRequest) (*v1.GetServerInfoResponse, error) {
+	var res v1.GetServerInfoResponse
+	if err := c.client.CallUnary(ctx, serverServiceGetServerInfoSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+type serverServiceHandler struct{ svc ServerServiceHandler }
+
+func (h serverServiceHandler) getServerInfo(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.GetServerInfoRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.GetServerInfo(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
 }
