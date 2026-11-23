@@ -1,6 +1,79 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:recommended"
+    "config:best-practices"
+  ],
+  "minimumReleaseAge": "7 days",
+  "internalChecksFilter": "strict",
+  "timezone": "Asia/Tokyo",
+  "osvVulnerabilityAlerts": true,
+  "vulnerabilityAlerts": {
+    "labels": ["security"],
+    "minimumReleaseAge": null
+  },
+  "postUpdateOptions": ["gomodTidy"],
+  "platformAutomerge": true,
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Track the go directive in go.work",
+      "managerFilePatterns": ["/(^|/)go\\.work$/"],
+      "matchStrings": ["(?:^|\\n)go (?<currentValue>\\d+\\.\\d+\\.\\d+)"],
+      "depNameTemplate": "go",
+      "datasourceTemplate": "golang-version"
+    }
+  ],
+  "packageRules": [
+    {
+      "description": "Automerge non-breaking minor, patch and digest updates individually",
+      "matchUpdateTypes": ["minor", "patch", "digest"],
+      "matchIsBreaking": false,
+      "automerge": true,
+      "addLabels": ["automerge"]
+    },
+    {
+      "description": "Apply the 7 day release age to npm too (config:best-practices sets 3 days)",
+      "matchDatasources": ["npm"],
+      "matchUpdateTypes": ["major", "minor", "patch"],
+      "minimumReleaseAge": "7 days"
+    },
+    {
+      "matchUpdateTypes": ["lockFileMaintenance", "pin", "pinDigest"],
+      "minimumReleaseAge": null
+    },
+    {
+      "description": "Look up protoc-gen-connect-go by its module path",
+      "matchManagers": ["mise"],
+      "matchPackageNames": ["connectrpc.com/connect/v2/cmd/protoc-gen-connect-go"],
+      "overridePackageName": "connectrpc.com/connect/v2"
+    },
+    {
+      "description": "Group connect-rust runtime, codegen and buffa so generated code and runtime stay compatible",
+      "matchDatasources": ["crate"],
+      "matchPackageNames": ["connectrpc", "connectrpc-build", "buffa"],
+      "groupName": "connect-rust"
+    },
+    {
+      "description": "Bump go directive in go.mod to the latest Go release",
+      "matchManagers": ["gomod"],
+      "matchDepNames": ["go"],
+      "matchDepTypes": ["golang"],
+      "rangeStrategy": "bump"
+    },
+    {
+      "description": "Group Go version updates: go/toolchain directives in go.mod and go.work",
+      "matchDatasources": ["golang-version"],
+      "groupName": "Go version",
+      "internalChecksFilter": "none",
+      "platformAutomerge": false
+    },
+    {
+      "description": "Group Go version updates: mise (github-tags golang/go)",
+      "matchDatasources": ["github-tags"],
+      "matchPackageNames": ["golang/go"],
+      "groupName": "Go version",
+      "internalChecksFilter": "none",
+      "platformAutomerge": false
+    }
   ]
 }
