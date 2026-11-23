@@ -22,7 +22,7 @@ jobs:
         uses: jdx/mise-action@v3
         with:
           install_args: >-
-            go buf
+            go buf golangci-lint
             go:google.golang.org/protobuf/cmd/protoc-gen-go
             go:connectrpc.com/connect/v2/cmd/protoc-gen-connect-go
       - if: steps.changes.outputs.run == 'true'
@@ -34,6 +34,6 @@ jobs:
       - if: steps.changes.outputs.run == 'true'
         working-directory: server
         run: |
-          test -z "$(gofmt -l .)"
-          go vet ./...
+          golangci-lint fmt --diff
+          golangci-lint run ./...
           go test ./...

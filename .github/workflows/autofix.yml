@@ -39,5 +39,8 @@ jobs:
       - if: steps.rust.outputs.run == 'true'
         run: cargo fmt --all
       - if: steps.go.outputs.run == 'true'
-        run: mise x go -- gofmt -w server
+        working-directory: server
+        run: |
+          mise x go golangci-lint -- golangci-lint run --fix --issues-exit-code=0 ./...
+          mise x go golangci-lint -- golangci-lint fmt
       - uses: autofix-ci/action@v1
