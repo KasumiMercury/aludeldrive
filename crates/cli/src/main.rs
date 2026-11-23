@@ -38,7 +38,9 @@ async fn run(args: Vec<String>) -> Result<(), String> {
 }
 
 async fn version(server: &str) -> Result<(), String> {
-    let uri: http::Uri = server.parse().map_err(|e| format!("invalid server URL {server:?}: {e}"))?;
+    let uri: http::Uri = server
+        .parse()
+        .map_err(|e| format!("invalid server URL {server:?}: {e}"))?;
     let client = ServerServiceClient::new(http_client(&uri)?, ClientConfig::new(uri));
     let info = client
         .get_server_info(GetServerInfoRequest::default())
@@ -58,11 +60,14 @@ async fn version(server: &str) -> Result<(), String> {
 fn http_client(uri: &http::Uri) -> Result<HttpClient, String> {
     match uri.scheme_str() {
         Some("https") => {
-            let tls = rustls::ClientConfig::with_platform_verifier().map_err(|e| format!("TLS setup: {e}"))?;
+            let tls = rustls::ClientConfig::with_platform_verifier()
+                .map_err(|e| format!("TLS setup: {e}"))?;
             Ok(HttpClient::with_tls(Arc::new(tls)))
         }
         Some("http") => Ok(HttpClient::plaintext()),
-        _ => Err(format!("server URL must start with http:// or https://: {uri}")),
+        _ => Err(format!(
+            "server URL must start with http:// or https://: {uri}"
+        )),
     }
 }
 
