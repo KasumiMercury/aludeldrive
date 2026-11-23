@@ -1,0 +1,39 @@
+name: server
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  server:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 2
+      - id: changes
+        run: >-
+          scripts/changed.sh
+          server proto buf.yaml buf.gen.yaml go.work mise.toml
+          .github/workflows/server.yml scripts/changed.sh
+      - if: steps.changes.outputs.run == 'true'
+        uses: jdx/mise-action@v3
+        with:
+          install_args: >-
+            go buf
+            go:google.golang.org/protobuf/cmd/protoc-gen-go
+            go:connectrpc.com/connect/v2/cmd/protoc-gen-connect-go
+      - if: steps.changes.outputs.run == 'true'
+        run: |
+          buf lint
+          buf format --diff --exit-code
+          buf generate
+          test -z "$(git status --porcelain)"
+      - if: steps.changes.outputs.run == 'true'
+        working-directory: server
+        run: |
+          test -z "$(gofmt -l .)"
+          go vet ./...
+          go test ./...

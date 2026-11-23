@@ -1,0 +1,52 @@
+name: app
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  app-ts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 2
+      - id: changes
+        run: >-
+          scripts/changed.sh
+          app ':!app/src-tauri' mise.toml
+          .github/workflows/app.yml scripts/changed.sh
+      - if: steps.changes.outputs.run == 'true'
+        uses: jdx/mise-action@v3
+        with:
+          install_args: node pnpm
+      - if: steps.changes.outputs.run == 'true'
+        working-directory: app
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm build
+
+  app-tauri:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 2
+      - id: changes
+        run: >-
+          scripts/changed.sh
+          app/src-tauri Cargo.toml Cargo.lock mise.toml
+          .github/workflows/app.yml scripts/changed.sh
+      - if: steps.changes.outputs.run == 'true'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev
+      - if: steps.changes.outputs.run == 'true'
+        uses: Swatinem/rust-cache@v2
+      - if: steps.changes.outputs.run == 'true'
+        run: |
+          cargo fmt -p aludel-app --check
+          cargo clippy -p aludel-app --all-targets -- -D warnings
+          cargo test -p aludel-app
