@@ -29,6 +29,7 @@ func run(args []string) error {
 	if len(args) == 0 {
 		return errors.New("usage: aludel serve [-config path]")
 	}
+
 	switch args[0] {
 	case "serve":
 		return serve(args[1:])
@@ -39,10 +40,12 @@ func run(args []string) error {
 
 func serve(args []string) error {
 	fs := flag.NewFlagSet("serve", flag.ContinueOnError)
+
 	configPath := fs.String("config", "", "path to aludel.yaml")
 	if err := fs.Parse(args); err != nil {
 		return err
 	}
+
 	cfg, err := config.Load(*configPath)
 	if err != nil {
 		return err
@@ -63,8 +66,10 @@ func serve(args []string) error {
 	defer stop()
 
 	errc := make(chan error, 1)
+
 	go func() {
 		slog.Info("listening", "addr", cfg.Listen, "tls", cfg.TLS.Enabled(), "version", version)
+
 		if cfg.TLS.Enabled() {
 			errc <- srv.ListenAndServeTLS(cfg.TLS.CertFile, cfg.TLS.KeyFile)
 		} else {
@@ -80,5 +85,6 @@ func serve(args []string) error {
 
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
+
 	return srv.Shutdown(shutdownCtx)
 }

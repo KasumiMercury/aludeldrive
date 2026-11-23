@@ -13,6 +13,7 @@ func TestLoad(t *testing.T) {
 		if err := os.WriteFile(p, []byte(body), 0o600); err != nil {
 			t.Fatal(err)
 		}
+
 		return p
 	}
 

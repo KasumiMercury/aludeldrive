@@ -17,10 +17,12 @@ func TestGetServerInfo(t *testing.T) {
 	defer ts.Close()
 
 	client := aludelv1connect.NewServerServiceClient(connect.NewClient(connecthttp.NewTransport(ts.Client(), ts.URL)))
+
 	res, err := client.GetServerInfo(context.Background(), &aludelv1.GetServerInfoRequest{})
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	if got := res.GetVersion(); got != "1.2.3" {
 		t.Fatalf("version = %q, want %q", got, "1.2.3")
 	}

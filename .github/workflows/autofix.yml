@@ -1,0 +1,46 @@
+name: autofix.ci
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  autofix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 2
+      - id: app
+        run: >-
+          scripts/changed.sh
+          app ':!app/src-tauri' mise.toml
+          .github/workflows/autofix.yml scripts/changed.sh
+      - id: rust
+        run: >-
+          scripts/changed.sh
+          crates app/src-tauri Cargo.toml
+          .github/workflows/autofix.yml scripts/changed.sh
+      - id: go
+        run: >-
+          scripts/changed.sh
+          server go.work mise.toml
+          .github/workflows/autofix.yml scripts/changed.sh
+      - uses: jdx/mise-action@v3
+        with:
+          install: false
+      - if: steps.app.outputs.run == 'true'
+        working-directory: app
+        run: |
+          mise x node pnpm -- pnpm install --frozen-lockfile
+          mise x node pnpm -- pnpm fmt
+      - if: steps.rust.outputs.run == 'true'
+        run: cargo fmt --all
+      - if: steps.go.outputs.run == 'true'
+        working-directory: server
+        run: |
+          mise x go golangci-lint -- golangci-lint run --fix --issues-exit-code=0 ./...
+          mise x go golangci-lint -- golangci-lint fmt
+      - uses: autofix-ci/action@v1
