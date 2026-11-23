@@ -31,7 +31,7 @@ jobs:
           server go.work mise.toml
           .github/workflows/autofix.yml scripts/changed.sh
       - if: steps.app.outputs.run == 'true'
-        uses: jdx/mise-action@5228313ee0372e111a38da051671ca30fc5a96db # v3
+        uses: jdx/mise-action@236a21c3b91f5db6d4e174b348674a0f0caac06d # v5
         with:
           install_args: node pnpm
       - if: steps.app.outputs.run == 'true'
@@ -52,7 +52,7 @@ jobs:
       - if: steps.rust.outputs.run == 'true'
         run: cargo fmt --all
       - if: steps.go.outputs.run == 'true'
-        uses: jdx/mise-action@5228313ee0372e111a38da051671ca30fc5a96db # v3
+        uses: jdx/mise-action@236a21c3b91f5db6d4e174b348674a0f0caac06d # v5
         with:
           install_args: go golangci-lint
       - if: steps.go.outputs.run == 'true'
