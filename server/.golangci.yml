@@ -1,0 +1,31 @@
+version: "2"
+
+linters:
+  default: standard
+  enable:
+    - wsl_v5
+    - bodyclose
+    - contextcheck
+    - fatcontext
+    - containedctx
+    - exhaustruct_v5
+    - exhaustive
+    - forbidigo
+    - gosec
+    - nilnil
+    - nilerr
+    - nlreturn
+  settings:
+    exhaustruct_v5:
+      ignore-patterns:
+        - 'net/http\.Server'
+  exclusions:
+    rules:
+      - path: internal/config/config\.go
+        linters:
+          - gosec
+        text: G304
+
+formatters:
+  enable:
+    - gofmt

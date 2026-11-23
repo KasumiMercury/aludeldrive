@@ -14,8 +14,10 @@ import (
 func NewHandler(version string) http.Handler {
 	srv := connect.NewServer()
 	aludelv1connect.RegisterServerServiceHandler(srv, &serverService{version: version})
+
 	mux := http.NewServeMux()
 	connecthttp.Mount(mux, srv)
+
 	return mux
 }
 

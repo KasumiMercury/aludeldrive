@@ -24,7 +24,7 @@ func (t TLS) Enabled() bool {
 }
 
 func Default() Config {
-	return Config{Listen: "127.0.0.1:8080"}
+	return Config{Listen: "127.0.0.1:8080", TLS: TLS{CertFile: "", KeyFile: ""}}
 }
 
 func Load(path string) (Config, error) {
@@ -32,17 +32,22 @@ func Load(path string) (Config, error) {
 	if path == "" {
 		return cfg, nil
 	}
+
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return Config{}, fmt.Errorf("read config: %w", err)
 	}
+
 	dec := yaml.NewDecoder(bytes.NewReader(data))
 	dec.KnownFields(true)
+
 	if err := dec.Decode(&cfg); err != nil {
 		return Config{}, fmt.Errorf("parse config %s: %w", path, err)
 	}
+
 	if cfg.TLS.Enabled() && (cfg.TLS.CertFile == "" || cfg.TLS.KeyFile == "") {
 		return Config{}, errors.New("tls: cert_file and key_file must be set together")
 	}
+
 	return cfg, nil
 }
