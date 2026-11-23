@@ -2,6 +2,8 @@ name: crate
 
 on:
   pull_request:
+  push:
+    branches: [main]
 
 permissions:
   contents: read
@@ -24,6 +26,8 @@ jobs:
           install_args: buf
       - if: steps.changes.outputs.run == 'true'
         uses: Swatinem/rust-cache@v2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/main' }}
       - if: steps.changes.outputs.run == 'true'
         run: |
           cargo fmt -p aludel-api -p aludel-cli --check
