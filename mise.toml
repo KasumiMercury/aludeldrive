@@ -2,7 +2,7 @@
 buf = "1.75.0"
 "cargo:tauri-cli" = "2.12.6"
 go = "1.27.4"
-"go:connectrpc.com/connect/cmd/protoc-gen-connect-go" = "1.21.1"
+"go:connectrpc.com/connect/v2/cmd/protoc-gen-connect-go" = "2.0.2"
 "go:google.golang.org/protobuf/cmd/protoc-gen-go" = "1.36.12"
 node = "26.13.1"
 pnpm = "12.21.0"
