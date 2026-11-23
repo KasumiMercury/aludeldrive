@@ -12,7 +12,7 @@
 
 ### ツールの導入
 
-`mise.toml` に定義したツール（Go、Node.js、pnpm、Task、buf、tauri-cli）を入れる。
+`mise.toml` に定義したツール（Go、Node.js、pnpm、Task、buf、Protobuf の生成プラグイン、tauri-cli）を入れる。
 
 ```sh
 mise install

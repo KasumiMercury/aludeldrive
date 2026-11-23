@@ -1,0 +1,13 @@
+[package]
+name = "aludel-api"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+buffa = { version = "0.9", features = ["json"] }
+serde = { version = "1", features = ["derive"] }
+connectrpc = { version = "0.9", features = ["client"] }
+
+[build-dependencies]
+connectrpc-build = "0.9"

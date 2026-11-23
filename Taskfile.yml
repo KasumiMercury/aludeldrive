@@ -1,5 +1,9 @@
 version: "3"
 
+vars:
+  VERSION:
+    sh: sed -n 's/^version = "\(.*\)"$/\1/p' Cargo.toml | head -1
+
 tasks:
   install:
     desc: 画面の依存を導入する
@@ -7,17 +11,36 @@ tasks:
     cmds:
       - pnpm install --frozen-lockfile
 
+  gen:
+    desc: Protobuf の定義から Go のコードを生成する
+    cmds:
+      - buf generate
+
+  lint:
+    desc: Protobuf の定義を検査する
+    cmds:
+      - buf lint
+      - buf format --diff --exit-code
+
   build:
-    desc: 画面と Rust のワークスペースをビルドする
+    desc: 画面、Go のサーバー、Rust のワークスペースをビルドする
     deps: [install]
     cmds:
       - pnpm --dir app build
+      - go -C server build -ldflags "-X main.version={{.VERSION}}" -o ../target/aludel ./cmd/aludel
       - cargo build --workspace
 
   test:
-    desc: Rust のワークスペースのテストを実行する
+    desc: Go と Rust のテストを実行する
     cmds:
+      - go -C server test ./...
       - cargo test --workspace
+
+  e2e:
+    desc: サーバーと CLI を通しで動かす
+    deps: [build]
+    cmds:
+      - bash scripts/e2e.sh {{.VERSION}}
 
   dev:
     desc: アプリを開発モードで起動する
