@@ -2,6 +2,8 @@ name: app
 
 on:
   pull_request:
+  push:
+    branches: [main]
 
 permissions:
   contents: read
@@ -22,6 +24,16 @@ jobs:
         uses: jdx/mise-action@v3
         with:
           install_args: node pnpm
+      - if: steps.changes.outputs.run == 'true'
+        id: pnpm
+        working-directory: app
+        run: echo "store=$(pnpm store path)" >> "$GITHUB_OUTPUT"
+      - if: steps.changes.outputs.run == 'true'
+        uses: actions/cache@v6
+        with:
+          path: ${{ steps.pnpm.outputs.store }}
+          key: pnpm-${{ runner.os }}-${{ hashFiles('app/pnpm-lock.yaml') }}
+          restore-keys: pnpm-${{ runner.os }}-
       - if: steps.changes.outputs.run == 'true'
         working-directory: app
         run: |
@@ -46,6 +58,8 @@ jobs:
           sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev
       - if: steps.changes.outputs.run == 'true'
         uses: Swatinem/rust-cache@v2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/main' }}
       - if: steps.changes.outputs.run == 'true'
         run: |
           cargo fmt -p aludel-app --check

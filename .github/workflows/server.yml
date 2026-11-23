@@ -2,6 +2,8 @@ name: server
 
 on:
   pull_request:
+  push:
+    branches: [main]
 
 permissions:
   contents: read
@@ -26,6 +28,17 @@ jobs:
             go:google.golang.org/protobuf/cmd/protoc-gen-go
             go:connectrpc.com/connect/v2/cmd/protoc-gen-connect-go
       - if: steps.changes.outputs.run == 'true'
+        uses: actions/cache/restore@v6
+        with:
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+            ~/.cache/golangci-lint
+          key: go-${{ runner.os }}-${{ hashFiles('server/go.sum', 'mise.toml') }}-${{ github.run_id }}
+          restore-keys: |
+            go-${{ runner.os }}-${{ hashFiles('server/go.sum', 'mise.toml') }}-
+            go-${{ runner.os }}-
+      - if: steps.changes.outputs.run == 'true'
         run: |
           buf lint
           buf format --diff --exit-code
@@ -37,3 +50,11 @@ jobs:
           golangci-lint fmt --diff
           golangci-lint run ./...
           go test ./...
+      - if: steps.changes.outputs.run == 'true' && github.ref == 'refs/heads/main'
+        uses: actions/cache/save@v6
+        with:
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+            ~/.cache/golangci-lint
+          key: go-${{ runner.os }}-${{ hashFiles('server/go.sum', 'mise.toml') }}-${{ github.run_id }}
