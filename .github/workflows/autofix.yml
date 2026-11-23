@@ -28,19 +28,16 @@ jobs:
           scripts/changed.sh
           server go.work mise.toml
           .github/workflows/autofix.yml scripts/changed.sh
-      - if: steps.app.outputs.run == 'true' || steps.go.outputs.run == 'true'
-        uses: jdx/mise-action@v3
+      - uses: jdx/mise-action@v3
         with:
-          install_args: >-
-            ${{ steps.app.outputs.run == 'true' && 'node pnpm' || '' }}
-            ${{ steps.go.outputs.run == 'true' && 'go' || '' }}
+          install: false
       - if: steps.app.outputs.run == 'true'
         working-directory: app
         run: |
-          pnpm install --frozen-lockfile
-          pnpm fmt
+          mise x node pnpm -- pnpm install --frozen-lockfile
+          mise x node pnpm -- pnpm fmt
       - if: steps.rust.outputs.run == 'true'
         run: cargo fmt --all
       - if: steps.go.outputs.run == 'true'
-        run: gofmt -w server
+        run: mise x go -- gofmt -w server
       - uses: autofix-ci/action@v1
