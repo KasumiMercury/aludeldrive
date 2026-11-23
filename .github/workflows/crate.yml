@@ -21,11 +21,11 @@ jobs:
           crates Cargo.toml Cargo.lock proto buf.yaml mise.toml
           .github/workflows/crate.yml scripts/changed.sh
       - if: steps.changes.outputs.run == 'true'
-        uses: jdx/mise-action@v3
+        uses: jdx/mise-action@5228313ee0372e111a38da051671ca30fc5a96db # v3
         with:
           install_args: buf
       - if: steps.changes.outputs.run == 'true'
-        uses: Swatinem/rust-cache@v2
+        uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2
         with:
           save-if: ${{ github.ref == 'refs/heads/main' }}
       - if: steps.changes.outputs.run == 'true'
