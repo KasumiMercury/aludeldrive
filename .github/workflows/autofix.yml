@@ -31,7 +31,7 @@ jobs:
           server go.work mise.toml
           .github/workflows/autofix.yml scripts/changed.sh
       - if: steps.app.outputs.run == 'true'
-        uses: jdx/mise-action@v3
+        uses: jdx/mise-action@5228313ee0372e111a38da051671ca30fc5a96db # v3
         with:
           install_args: node pnpm
       - if: steps.app.outputs.run == 'true'
@@ -39,7 +39,7 @@ jobs:
         working-directory: app
         run: echo "store=$(pnpm store path)" >> "$GITHUB_OUTPUT"
       - if: steps.app.outputs.run == 'true'
-        uses: actions/cache/restore@v6
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: ${{ steps.pnpm.outputs.store }}
           key: pnpm-${{ runner.os }}-${{ hashFiles('app/pnpm-lock.yaml') }}
@@ -52,11 +52,11 @@ jobs:
       - if: steps.rust.outputs.run == 'true'
         run: cargo fmt --all
       - if: steps.go.outputs.run == 'true'
-        uses: jdx/mise-action@v3
+        uses: jdx/mise-action@5228313ee0372e111a38da051671ca30fc5a96db # v3
         with:
           install_args: go golangci-lint
       - if: steps.go.outputs.run == 'true'
-        uses: actions/cache/restore@v6
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: |
             ~/go/pkg/mod
@@ -72,4 +72,4 @@ jobs:
           golangci-lint run --fix --issues-exit-code=0 ./...
           golangci-lint fmt
       - if: github.event_name == 'pull_request'
-        uses: autofix-ci/action@v1
+        uses: autofix-ci/action@c5b2d67aa2274e7b5a18224e8171550871fc7e4a # v1
